@@ -4,7 +4,7 @@
             <img src="../assets/logo.jpg" alt="my login image">
         </div> 
         <!-- 手机号 -->
-        <InputGroup type='number' v-model='phone' placeholder='手机号' :btnTitle='btnTitile' :disabled="disabled" :error='errors.phone'/>
+        <InputGroup type='number' v-model='phone' placeholder='手机号' :btnTitle='btnTitile' :disabled="disabled" :error='errors.phone' @btnClick='getVerifyCode()'/>
         <!-- 验证码 -->
         <InputGroup type='number' v-model='verifyCode' placeholder='验证码'  :error='errors.code'/>
         <!-- 用户协议 -->
@@ -16,7 +16,7 @@
         </div>
         <!-- 登录按钮 -->
         <div class="login_btn">
-        <button>登录</button>
+        <button :disabled="isClick" @click="handleLogin">登录</button>
         </div>
     </div>
 </template>
@@ -26,19 +26,89 @@ export default {
     name:'login',
     data(){
         return{
-           phone:'',
-           verifyCode:'',
+           phone:"",
+           verifyCode:"",
            errors:{},
            btnTitile:'获取验证码',
            disabled:false,   
         }
+    },
+    computed:{
+      isClick(){
+        if(!this.phone || !this.verifyCode)return true;
+        else return false
+      }
+    },
+    methods:{
+      handleLogin(){
+        //取消错误提醒
+        this.errors ={};
+        //发送请求
+        this.$axios.post('/api/posts/sms_back',{
+          phone: this.phone,
+          code: this.verifyCode
+        }).then(res => {
+          console.log(res);
+          //检验成功 设置登录状态
+          localStorage.setItem('ele_login',true);
+          this.$router.push("/")
+        }).catch(err => {
+          this.errors = {
+            code :err.response.data.msg
+          }
+        })
+      },
+      getVerifyCode (){
+        if(this.validatePhone()){
+          this.validateBtn();
+          //发送网络请求
+          this.$axios.post("/api/posts/sms_send",{
+            tpl_id: '187530',
+            key:"a4676bea3821acf466b5ff8762ed5fe7",
+            phone:this.phone
+          }).then(res=>{
+            console.log(res);
+          })
+        }
+      },
+      validateBtn(){
+        let time = 60;
+        let timer = setInterval(()=>{
+          if(time == 0){
+            clearInterval(timer);
+            this.btnTitile = '获取验证码';
+            this.disabled =false;
+          }else{
+            this.btnTitile = time +'秒后重试';
+            this.disabled = true;
+            time--;
+          }
+        },1000);
+      },
+      validatePhone(){
+        //验证手机号码
+        if(!this.phone){
+          this.errors={
+            phone:'手机号码不能为空'
+          };
+          return false;
+        }else if(!/^1[3456789]\d{9}/.test(this.phone)){
+          this.errors ={
+            phone:'请填写正确的手机号码'
+          };
+          return false
+        }else{
+          this.errors= {};
+          return true
+        }
+      }
     },
     components: {
         InputGroup
     }
 }
 </script>
-<style>
+<style scoped>
 .login {
   width: 100%;
   height: 100%;

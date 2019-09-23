@@ -1,23 +1,24 @@
 <template>
   <div class="text_group">
-    <!-- 组件结构    -->
+    <!-- 组件结构 -->
     <!-- 组件容器 -->
-    <div  class="input_group"  :class="{'is-invalid':error}">
+    <div class="input_group" :class="{'is-invalid':error}">
       <!-- 输入框 -->
       <input
         :type="type"
         :value="value"
         :placeholder="placeholder"
         :name="name"
-        @input="$emit('input'),$event.target.value"
+        @input="$emit('input',$event.target.value)"
       />
-      <!-- 输入框后边的按钮 -->
-      <button v-if="btnTitle" :disabled="disable" @click="$emit('btnClick')">{{btnTitle}}</button>
-      <!-- 错误提醒 -->
-      <div v-if="error" class="invalid-feedback">{{error}}</div>
+      <!-- 输入框后面的按钮 -->
+      <button v-if="btnTitle" :disabled="disabled" @click="$emit('btnClick')">{{btnTitle}}</button>
     </div>
+    <!-- 错误提醒 -->
+    <div v-if="error" class="invalid-feedback">{{error}}</div>
   </div>
 </template>
+
 <script>
 export default {
   name: "inputGroup",
@@ -30,12 +31,13 @@ export default {
     placeholder: String,
     name: String,
     btnTitle: String,
-    disable: Boolean,
+    disabled: Boolean,
     error: String
   }
 };
 </script>
-<style>
+
+<style scoped>
 .input_group {
   border: 1px solid #ccc;
   border-radius: 4px;
