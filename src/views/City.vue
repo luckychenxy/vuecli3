@@ -3,23 +3,36 @@
     <div class="search_wrap">
         <div class="search">
             <i class="fa fa-search"></i>
-            <input type="text" vm.model="city_val" placeholder="输入城市名">
+            <input type="text" v-model="city_val" placeholder="输入城市名">
         </div>
         <button @click="$router.push({name:'address',params:{city:city}})">取消</button>
     </div>
-    <div class="location">
-        <Location :address="city"/>
+    <div style="height:100%" v-if="searchList.length == 0">
+        <div class="location">
+            <Location @click="selectCity({name:city})" :address="city"/>
+        </div>
+        <Alphabet @selectCity = 'selectCity' ref ="allcity" :cityInfo='cityInfo' :keys ="keys"/>
+    </div>
+    <div class="search_list" v-else>
+      <ul>
+        <li @click="selectCity(item)" v-for="(item,index) in searchList" :key="index">{{item.name}}</li>
+      </ul>
     </div>
 </div>
 </template>
 
 <script>
 import Location from '../components/Location';
+import Alphabet from '../components/Alphabet';
 export default {
-    name:'City',
+    name:'City', 
     data(){
         return {
            city_val:'',
+           cityInfo: null,
+           keys:[],
+           allCities: [],
+           searchList:[]
         }
     },
     computed:{
@@ -28,8 +41,56 @@ export default {
         } 
     },
     components:{
-       Location 
-    }
+       Location,
+       Alphabet
+    },
+    created(){
+        this.getCityInfo();
+    },
+    watch:{
+      city_val(){
+        console.log(this.city_val);
+        this.searchCity();
+      }
+    },
+    methods:{
+        getCityInfo(){
+            this.$axios('/api/posts/cities').then((res) => {
+                this.cityInfo = res.data;
+                this.keys = Object.keys(res.data);
+                //移除hotciey的key
+                this.keys.pop();
+                this.keys.sort();
+                this.$nextTick( () => {
+                    this.$refs.allcity.initScroll();
+                });
+
+                //存储所有城市用来过滤
+                this.keys.forEach(key => {
+                  this.cityInfo[key].forEach(city => {
+                    this.allCities.push(city);
+                  })
+                })
+            }).catch(err => {
+
+            })
+        },
+        selectCity(city){
+          this.$router.push({name:'address',params:{city:city.name}})
+        },
+        searchCity(){
+          if(!this.city_val){
+            //如果搜索框为空，数组置空
+            this.searchList =[];
+          }else{
+            //根据输入框的关键字检索城市，并存入到searchList中
+            this.searchList = this.allCities.filter(item => {
+              return item.name.indexOf(this.city_val) != -1;
+            })
+          }
+        }
+    },
+    
 }
 </script>
 <style scoped>
