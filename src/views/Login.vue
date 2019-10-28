@@ -48,9 +48,9 @@ export default {
           phone: this.phone,
           code: this.verifyCode
         }).then(res => {
-          console.log(res);
+          // console.log(res.data);
           //检验成功 设置登录状态
-          localStorage.setItem('ele_login',true);
+          localStorage.setItem('ele_login',res.data.user._id);
           this.$router.push("/")
         }).catch(err => {
           this.errors = {
