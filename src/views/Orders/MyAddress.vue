@@ -48,7 +48,20 @@ export default {
     },
     methods:{
         addAddress(){
-            this.$router.push('/addAddress');
+            this.$router.push({
+            name: "addAddress",
+            params: {
+              title: "添加地址",
+              addressInfo: {
+                name: "",
+                sex: "",
+                phone: "",
+                address: "",
+                bottom: "",
+                tag: ""
+              }
+            }
+          });
         },
         getData(){
           this.$axios(`/api/user/user_info/${localStorage.ele_login}`).then(res => {
